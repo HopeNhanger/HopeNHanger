@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HopeNHanger | Thrift Store</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lora Font for Serif style -->
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    
+    <script>
+        // Tailwind CSS Configuration
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-dark': '#414a37', // Dark Olive/Charcoal (Main Text/Header)
+                        'background-light': '#dbc2a6', // Light Tan/Beige (Main Background)
+                        'accent': '#99744a', // Medium Brown/Caramel (Buttons/Highlights)
+                        'neutral-light': '#fefcfb', // Off-White (Card Backgrounds)
+                    },
+                    fontFamily: {
+                        'serif': ['Lora', 'serif'], // Using Lora for a sophisticated serif feel
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar for a touch of vintage feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #99744a; /* Accent color */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #dbc2a6; /* Light background */
+        }
+        /* Custom text selection color */
+        ::selection {
+            background: #99744a;
+            color: #fefcfb;
+        }
+        /* Hide scrollbar on specific elements if needed for clean layout */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="font-serif bg-background-light text-primary-dark min-h-screen flex flex-col">
+
+    <!-- Main Application Container -->
+    <div id="app" class="flex flex-col flex-grow">
+        <!-- Navigation Bar -->
+        <nav class="bg-primary-dark shadow-lg sticky top-0 z-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <!-- Logo/Title -->
+                    <div class="flex-shrink-0">
+                        <span class="text-neutral-light text-2xl font-bold cursor-pointer" onclick="navigate('home')">
+                            HopeNHanger
+                        </span>
+                    </div>
+                    <!-- Desktop Navigation Links -->
+                    <div class="hidden md:flex">
+                        <div class="flex items-baseline space-x-4">
+                            <button onclick="navigate('home')" class="text-neutral-light hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition duration-150">Home</button>
+                            <button onclick="navigate('catalog')" class="text-neutral-light hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition duration-150">Shop Vintage</button>
+                            <button onclick="navigate('profile')" class="text-neutral-light hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition duration-150 relative">
+                                <span id="cart-count" class="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-neutral-light transform translate-x-1/2 -translate-y-1/2 bg-accent rounded-full"></span>
+                                Profile / Cart
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Mobile Menu Button -->
+                    <div class="md:hidden flex items-center">
+                        <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-neutral-light hover:bg-accent focus:outline-none">
+                            <span class="sr-only">Open main menu</span>
+                            <!-- Hamburger Icon -->
+                            <svg id="hamburger-icon" class="h-6 w-6 block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                            </svg>
+                            <!-- Close Icon -->
+                            <svg id="close-icon" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="md:hidden hidden">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <button onclick="navigate('home')" class="text-neutral-light hover:bg-accent block w-full text-left px-3 py-2 rounded-md text-base font-medium">Home</button>
+                    <button onclick="navigate('catalog')" class="text-neutral-light hover:bg-accent block w-full text-left px-3 py-2 rounded-md text-base font-medium">Shop Vintage</button>
+                    <button onclick="navigate('profile')" class="text-neutral-light hover:bg-accent block w-full text-left px-3 py-2 rounded-md text-base font-medium">Profile / Cart</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dynamic Content Area -->
+        <main id="content-area" class="flex-grow p-4 sm:p-8 max-w-7xl mx-auto w-full">
+            <!-- Content will be injected here by JavaScript -->
+        </main>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-primary-dark text-neutral-light text-center p-4 mt-auto">
+        <p>&copy; 2025 HopeNHanger | Mumbai , Maharashtra, India</p>
+    </footer>
+
+
+    <!-- Product Detail Modal -->
+    <div id="product-modal" class="hidden fixed inset-0 bg-primary-dark bg-opacity-75 z-50 flex items-center justify-center p-4">
+        <div id="modal-content" class="bg-neutral-light rounded-xl shadow-2xl overflow-hidden max-w-2xl w-full transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
+            
+        </div>
+    </div>
+
+    <!-- Message Box (for checkout, etc.) -->
+    <div id="message-box" class="hidden fixed top-4 right-4 p-4 rounded-lg shadow-xl text-neutral-light bg-accent z-50 transition-transform duration-300 transform translate-x-full">
+        <p id="message-text"></p>
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+
+        let currentPage = 'home';
+        let cart = [];
+        let selectedProduct = null;
+        let products = [
+            { id: 1, name: "Vintage Suede Jacket", price: 350, description: "Classic 70s suede jacket, rich tobacco color, excellent condition. A true statement piece for any vintage lover.", category: "Clothes", 
+            imageUrl: "https://i.pinimg.com/1200x/81/b9/58/81b9585d45134a38934277e4cca77496.jpg" },
+            { id: 2, name: "Ben Martin Baggy Fit Jeans", price: 400, description: " Loose fit, high-rise stretchable denim with a casual streetwear vibe.", category: "clothes", 
+            imageUrl: "https://i.pinimg.com/1200x/fe/7f/9d/fe7f9d2505bcf59df9c3de5ade0bf0e1.jpg" },
+            { id: 3, name: "Paisley Silk Scarf", price: 150, description: "Soft, flowing silk scarf with vibrant gold and blue paisley patterns. Versatile accessory.", category: "Clothes", 
+            imageUrl: "https://i.pinimg.com/1200x/25/f2/0c/25f20c90c43dfa07a6fb1950a6c9aacb.jpg" },
+            { id: 4, name: "Cotton Slim Fit Casual Shirt ", price: 350, description: "Crisp cotton shirt with a slim fit and full sleeves. Great for both formal and casual wear.", category: "clothes", 
+            imageUrl: "https://i.pinimg.com/736x/c1/6b/10/c16b1033622fe87b2c7bd18b97a71356.jpg" },
+            { id: 5, name: "pinstripe pattern", price: 349, description: "This is a sleeveless top with blue and white thin vertical stripesIt has broad straps tied into big bows on the shoulders and a loose frill/peplum design at the bottom, giving it a cute and stylish look.", category: "Clothes", 
+            imageUrl: "https://i.pinimg.com/1200x/32/af/5c/32af5ce784f4446c8bd8ec7237111ac5.jpg" },
+            { id: 6, name: "Summer Print V-Neck Top", price: 199, description: "Pink Block Print Peplum Top. Flowy sleeveless cotton blouse with a gathered waist and V-neck. Lightweight and breathable for summer comfort.", category: "Vintage", 
+            imageUrl: "https://i.pinimg.com/736x/b2/5f/2c/b25f2cfa70e5f9a59fd8dea80e1e940f.jpg" },
+        ];
+
+
+        // --- UTILITY FUNCTIONS ---
+
+        function showMessage(text) {
+            const messageBox = document.getElementById('message-box');
+            document.getElementById('message-text').textContent = text;
+            messageBox.classList.remove('hidden', 'translate-x-full');
+            messageBox.classList.add('translate-x-0');
+
+            setTimeout(() => {
+                messageBox.classList.remove('translate-x-0');
+                messageBox.classList.add('translate-x-full');
+                setTimeout(() => messageBox.classList.add('hidden'), 300);
+            }, 3000);
+        }
+
+        function updateCartCount() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            const cartCountEls = document.querySelectorAll('#cart-count');
+            cartCountEls.forEach(el => {
+                el.textContent = count > 0 ? count : '';
+                el.classList.toggle('hidden', count === 0);
+            });
+        }
+
+        // --- NAVIGATION & VIEW LOGIC ---
+
+        function navigate(page) {
+            currentPage = page;
+            renderApp();
+            window.scrollTo(0, 0);
+            
+            // Close mobile menu if it's open
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+                document.getElementById('hamburger-icon').classList.remove('hidden');
+                document.getElementById('close-icon').classList.add('hidden');
+            }
+        }
+
+        function renderApp() {
+            const contentArea = document.getElementById('content-area');
+            let html = '';
+
+            switch (currentPage) {
+                case 'home':
+                    html = renderHomePage();
+                    break;
+                case 'catalog':
+                    html = renderCatalogPage();
+                    break;
+                case 'profile':
+                    html = renderProfilePage();
+                    break;
+                default:
+                    html = renderHomePage();
+            }
+            contentArea.innerHTML = html;
+            updateCartCount();
+        }
+
+        // --- HOME PAGE RENDER ---
+
+        function renderHomePage() {
+            const featuredProducts = products.map(p => `
+                <div onclick="openProductModal(${p.id})" class="bg-neutral-light rounded-xl shadow-lg overflow-hidden cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
+                    <img src="${p.imageUrl}" alt="${p.name}" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-primary-dark truncate">${p.name}</h3>
+                        <p class="text-accent text-2xl font-bold mt-1">₹${p.price.toFixed(2)}</p>
+                        <span class="inline-block mt-2 text-xs font-medium text-primary-dark/60 border border-primary-dark/30 rounded-full px-3 py-1">${p.category}</span>
+                    </div>
+                </div>`).join('');
+
+            return `
+                <header class="relative text-center py-16 sm:py-24 bg-neutral-light rounded-xl shadow-xl mb-12 overflow-hidden">
+                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://i.pinimg.com/736x/b4/77/a4/b477a42759cb51ebf43e75492a9a01e8.jpg');"></div>
+                    <div class="absolute inset-0 bg-primary-dark opacity-60"></div>
+                    <div class="relative z-10 px-4">
+                        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-bold text-neutral-light leading-tight mb-4">
+                            Curated Finds. <br class="sm:hidden"> Timeless Style.
+                        </h1>
+                        <p class="text-lg sm:text-xl lg:text-2xl text-background-light mb-8 max-w-3xl mx-auto">
+                            Discover the charm of pre-loved clothes and unique vintage items. Every piece tells a story.
+                        </p>
+                        <button onclick="navigate('catalog')" class="bg-accent text-neutral-light hover:bg-neutral-light hover:text-accent transition-colors duration-300 px-8 py-3 text-lg font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105">
+                            Start Thrifting Now
+                        </button>
+                    </div>
+                </header>
+
+                <section class="grid md:grid-cols-2 gap-8 mb-16">
+                    <div class="p-8 bg-neutral-light rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                        <img src="https://i.pinimg.com/736x/02/1a/fe/021afeecb99304bb3bf7a9f83ea452cc.jpg" alt="Vintage Clothing" class="rounded-lg mb-4 w-full h-48 object-cover">
+                        <h3 class="text-3xl font-semibold mb-2 text-primary-dark">Pre-Loved Apparel</h3>
+                        <p class="text-primary-dark/80">Sustainable fashion that stands the test of time. Jackets, denim, and retro dresses.</p>
+                    </div>
+                    <div class="p-8 bg-neutral-light rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                        <img src="https://i.pinimg.com/736x/17/dd/68/17dd687dcac53ddf0b8dec5c11ab130e.jpg" alt="Unique Homeware" class="rounded-lg mb-4 w-full h-48 object-cover">
+                        <h3 class="text-3xl font-semibold mb-2 text-primary-dark">Unique Homeware & Decor</h3>
+                        <p class="text-primary-dark/80">One-of-a-kind items from glassware to art and small furniture pieces.</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-4xl font-bold mb-8 text-primary-dark text-center">Our Latest Finds</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${featuredProducts}
+                    </div>
+                </section>`;
+        }
+
+        // --- CATALOG PAGE RENDER ---
+
+        function renderCatalogPage() {
+            const productList = products.map(p => `
+                <div onclick="openProductModal(${p.id})" class="bg-neutral-light rounded-xl shadow-lg overflow-hidden cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
+                    <img src="${p.imageUrl}" alt="${p.name}" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-primary-dark truncate">${p.name}</h3>
+                        <p class="text-accent text-2xl font-bold mt-1">₹${p.price.toFixed(2)}</p>
+                        <span class="inline-block mt-2 text-xs font-medium text-primary-dark/60 border border-primary-dark/30 rounded-full px-3 py-1">${p.category}</span>
+                    </div>
+                </div>`).join('');
+
+            return `
+                <h2 class="text-4xl font-bold mb-8 text-primary-dark text-center">Our Latest Finds</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${productList}
+                </div>`;
+        }
+
+        // --- PRODUCT MODAL LOGIC ---
+
+        function openProductModal(productId) {
+            selectedProduct = products.find(p => p.id === productId);
+            if (!selectedProduct) return;
+
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="md:flex">
+                    <div class="md:w-1/2 p-4">
+                        <img src="${selectedProduct.imageUrl}" alt="${selectedProduct.name}" class="rounded-lg w-full h-auto shadow-md">
+                    </div>
+                    <div class="md:w-1/2 p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-primary-dark mb-2">${selectedProduct.name}</h3>
+                            <p class="text-accent text-3xl md:text-4xl font-extrabold mb-4">₹${selectedProduct.price.toFixed(2)}</p>
+                            <p class="text-primary-dark/80 mb-6">${selectedProduct.description}</p>
+                            <span class="inline-block text-sm font-medium text-primary-dark/60 border border-primary-dark/30 rounded-full px-3 py-1">${selectedProduct.category}</span>
+                        </div>
+                        <div class="mt-6">
+                            <button onclick="addToCart(selectedProduct); closeProductModal();" class="w-full bg-accent text-neutral-light hover:bg-primary-dark transition-colors duration-300 px-4 py-3 text-lg font-semibold rounded-lg shadow-md transform hover:scale-[1.02]">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="closeProductModal()" class="absolute top-4 right-4 text-primary-dark bg-neutral-light/50 hover:bg-neutral-light p-2 rounded-full transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>`;
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+            selectedProduct = null;
+        }
+
+        // --- CART MANAGEMENT ---
+
+        function addToCart(product) {
+            const existingItem = cart.find(item => item.id === product.id);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            updateCartCount();
+            showMessage(`${product.name} added to cart!`);
+        }
+
+        function updateQuantity(productId, delta) {
+            const item = cart.find(i => i.id === productId);
+            if (!item) return;
+            item.quantity += delta;
+            if (item.quantity <= 0) {
+                cart = cart.filter(i => i.id !== productId);
+            }
+            if (currentPage === 'profile') {
+                renderApp();
+            }
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                showMessage("Your cart is empty. Add some vintage charm!");
+                return;
+            }
+            showMessage(`Checkout initiated for ₹${calculateCartTotal().toFixed(2)}! (This is a dummy transaction)`);
+            cart = [];
+            navigate('home');
+        }
+
+        function calculateCartTotal() {
+            return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        }
+
+        // --- PROFILE/CART PAGE RENDER ---
+
+        function renderProfilePage() {
+            const cartItemsHtml = cart.length === 0 ?
+                `<p class="text-center text-xl py-8 text-primary-dark/70">Your cart is feeling light! Time to explore our unique finds.</p>` :
+                cart.map(item => `
+                    <div class="flex items-center justify-between p-2 md:p-4 border-b border-background-light last:border-b-0">
+                        <div class="flex items-center space-x-4 flex-grow">
+                            <img src="${item.imageUrl}" alt="${item.name}" class="w-16 h-16 object-cover rounded-md shadow-sm">
+                            <div class="flex-grow">
+                                <h4 class="font-semibold text-primary-dark truncate">${item.name}</h4>
+                                <p class="text-sm text-primary-dark/70">₹${item.price.toFixed(2)} each</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 mx-2">
+                            <button onclick="updateQuantity(${item.id}, -1)" class="w-8 h-8 rounded-full bg-background-light text-primary-dark hover:bg-accent hover:text-neutral-light transition-colors duration-150 shadow-md">-</button>
+                            <span class="font-bold text-primary-dark w-6 text-center">${item.quantity}</span>
+                            <button onclick="updateQuantity(${item.id}, 1)" class="w-8 h-8 rounded-full bg-background-light text-primary-dark hover:bg-accent hover:text-neutral-light transition-colors duration-150 shadow-md">+</button>
+                        </div>
+                        <div class="w-1/4 text-right">
+                            <p class="text-lg font-bold text-accent">₹${(item.price * item.quantity).toFixed(2)}</p>
+                        </div>
+                    </div>`).join('');
+
+            const cartTotal = calculateCartTotal();
+
+            return `
+                <div class="grid lg:grid-cols-3 gap-4 lg:gap-8">
+                    <div class="lg:col-span-1 bg-neutral-light p-6 rounded-xl shadow-xl h-fit">
+                        <h2 class="text-3xl font-bold text-primary-dark mb-4">My Account</h2>
+                        <div class="flex items-center space-x-4 mb-6 border-b pb-4 border-background-light">
+                            <img src="https://placehold.co/100x100/414a37/dbc2a6?text=UN" alt="User Avatar" class="w-16 h-16 rounded-full object-cover border-4 border-accent">
+                            <div>
+                                <p class="text-xl font-semibold text-primary-dark">User_Name</p>
+                                <p class="text-sm text-primary-dark/70">Member Since: 2025</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-primary-dark">
+                            <h3 class="font-bold text-lg mb-2">Details:</h3>
+                            <p><span class="font-semibold">Email:</span> user.name@vintage.com</p>
+                            <p><span class="font-semibold">Location:</span> India </p>
+                            <p><span class="font-semibold">Recent Orders:</span> 3</p>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2 bg-neutral-light p-6 rounded-xl shadow-xl">
+                        <h2 class="text-3xl font-bold text-primary-dark mb-6">Your Cart (${cart.length} Items)</h2>
+                        <div class="border-t border-b border-background-light mb-6">
+                            ${cartItemsHtml}
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:justify-between items-center pt-4">
+                            <h3 class="text-2xl font-bold text-primary-dark mb-4 sm:mb-0">
+                                Cart Total: <span class="text-accent">₹${cartTotal.toFixed(2)}</span>
+                            </h3>
+                            <button onclick="checkout()" ${cart.length === 0 ? 'disabled' : ''} class="w-full sm:w-auto bg-accent text-neutral-light transition-colors duration-300 px-6 py-3 text-lg font-semibold rounded-lg shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${cart.length === 0 ? 'bg-primary-dark/50' : 'hover:bg-primary-dark'}">
+                                Proceed to Checkout
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            renderApp();
+
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerIcon = document.getElementById('hamburger-icon');
+            const closeIcon = document.getElementById('close-icon');
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                hamburgerIcon.classList.toggle('hidden');
+                closeIcon.classList.toggle('hidden');
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeProductModal();
+            });
+
+            document.getElementById('product-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'product-modal') closeProductModal();
+            });
+        };
+    </script>
+
+</body>
+</html>
+
